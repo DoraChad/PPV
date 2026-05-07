@@ -657,7 +657,7 @@ const leaderboardUI = async function() {
   createCountdown(ld);
   
   const h3 = document.createElement("h3");
-  h3.textContent = "Poliest Poly 4";
+  h3.textContent = "Poliest Poly V";
   h3.style.fontSize = "22px";
   h3.style.margin = "0 10px 10px 10px";
   h3.style.opacity = "0.5";
