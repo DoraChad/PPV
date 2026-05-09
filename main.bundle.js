@@ -44,6 +44,11 @@ const rotationEpoch = new Date(Date.UTC(2026, 4, 3, 20, 0, 0, 0));
 
 const serverAlignments = {};
 
+const STATS_STORAGE_KEY = "polystats_v2";
+const STATS_LEGACY_KEY = "polystats_PPV";
+const STATS_MIGRATION_FLAG = "polystats_migrated_v2";
+const STATS_SERVER_URL = "https://polytrack.pythonanywhere.com/";
+
 function recordServerAlignment(serverIndex, trackOneBased, timeLeftSeconds) {
   if (serverIndex == null || serverIndex < 0) return;
   if (typeof trackOneBased !== "number" || typeof timeLeftSeconds !== "number") return;
@@ -745,8 +750,88 @@ const leaderboardUI = async function() {
   st.appendChild(bk);
 }
 
-
-
+function migrateLegacyStatsStorage() {
+    if (window.localStorage.getItem(STATS_MIGRATION_FLAG) === "1") return;
+ 
+    try {
+        const legacy = JSON.parse(window.localStorage.getItem(STATS_LEGACY_KEY)) || {};
+        const v2 = JSON.parse(window.localStorage.getItem(STATS_STORAGE_KEY)) || {};
+ 
+        for (const [indexStr, value] of Object.entries(legacy)) {
+            const idx = parseInt(indexStr, 10);
+            if (!Number.isInteger(idx)) continue;
+            const trackId = PPVTrackIds[idx];
+            if (!trackId) continue;
+            if (!Array.isArray(value) || value.length < 2) continue;
+ 
+            const existing = v2[trackId];
+            if (existing) {
+                v2[trackId] = [
+                    Math.max(existing[0] | 0, value[0] | 0),
+                    Math.max(existing[1] | 0, value[1] | 0),
+                ];
+            } else {
+                v2[trackId] = [value[0] | 0, value[1] | 0];
+            }
+        }
+ 
+        window.localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(v2));
+        window.localStorage.setItem(STATS_MIGRATION_FLAG, "1");
+    } catch (err) {
+        console.warn("Stats migration failed:", err);
+    }
+}
+ 
+async function syncStatsWithServer() {
+    let userId, nickname;
+    try {
+        const profile = pp_User.getCurrentUserProfile();
+        userId = profile.tokenHash;
+        nickname = profile.nickname || profile.name || profile.username || null;
+    } catch (e) {
+        return;
+    }
+    if (!userId || !/^[0-9a-f]{64}$/.test(userId)) return;
+ 
+    const local = JSON.parse(window.localStorage.getItem(STATS_STORAGE_KEY)) || {};
+ 
+    const stats = {};
+    for (const [trackId, value] of Object.entries(local)) {
+        if (!/^[0-9a-f]{64}$/.test(trackId)) continue;
+        if (!Array.isArray(value) || value.length < 2) continue;
+        const respawns = value[0] | 0;
+        const timeSeconds = value[1] | 0;
+        if (respawns < 0 || timeSeconds < 0) continue;
+        stats[trackId] = { respawns, timeSeconds };
+    }
+ 
+    const body = { stats };
+    if (typeof nickname === "string" && nickname.trim()) body.nickname = nickname.trim();
+ 
+    try {
+        const r = await fetch(`${STATS_SERVER_URL}/stats/${userId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+        });
+        if (!r.ok) {
+            console.warn("Stats sync failed:", r.status);
+            return;
+        }
+        const data = await r.json();
+        if (!data || !data.stats) return;
+ 
+        const merged = {};
+        for (const [trackId, entry] of Object.entries(data.stats)) {
+            merged[trackId] = [entry.respawns | 0, entry.timeSeconds | 0];
+        }
+        window.localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(merged));
+        logToUser("Statistics Synced With Server")
+    } catch (err) {
+        console.warn("Stats sync error:", err);
+    }
+}
+ 
 class StatisticsMod {
     tRespawn = 0;
     tTime = 0;
@@ -754,10 +839,10 @@ class StatisticsMod {
     currentTrackName;
     attemptsDiv;
     timeDiv;
-
+ 
     timer_interval = null;
     timer_active = false;
-
+ 
     timer_start = function() {
         if (this.timer_active) return;
         this.timer_active = true;
@@ -770,7 +855,7 @@ class StatisticsMod {
             }
         }, 1000);
     }
-
+ 
     timer_stop = function() {
         if (!this.timer_active) return;
         this.timer_active = false;
@@ -779,39 +864,31 @@ class StatisticsMod {
     timer_clear = function() {
         this.tTime = 0;
     }
-
+ 
     formatTime = function(seconds) {
         const h = Math.floor(seconds / 3600);
         const m = Math.floor((seconds % 3600) / 60);
-
+ 
         if (h > 0) {
             return `${h}h ${m}m played`;
         } else {
             return `${m}m played`;
         }
     }
-
+ 
     savePPVData = function() {
-        const data = JSON.parse(window.localStorage.getItem("polystats_PPV")) || {};
-
-        data[PPVTrackIds.indexOf(this.currentTrackId)] = [this.tRespawn, this.tTime];
-
-        window.localStorage.setItem("polystats_PPV", JSON.stringify(data));
+        const data = JSON.parse(window.localStorage.getItem(STATS_STORAGE_KEY)) || {};
+        data[this.currentTrackId] = [this.tRespawn, this.tTime];
+        window.localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(data));
     }
-
+ 
     getPPVData = function() {
-        const data = JSON.parse(window.localStorage.getItem(`polystats_PPV`));
-        if (!data) {
-            return;
-        }
-        const trackData = data[PPVTrackIds.indexOf(this.currentTrackId)]
-        if (trackData) {
-            return trackData
-        } else {
-            return;
-        };
+        const data = JSON.parse(window.localStorage.getItem(STATS_STORAGE_KEY));
+        if (!data) return;
+        const trackData = data[this.currentTrackId];
+        return trackData || undefined;
     };
-
+ 
     loadData = function() {
         if (PPVTrackIds.includes(this.currentTrackId)) {
             const data = this.getPPVData();
@@ -821,15 +898,16 @@ class StatisticsMod {
             return [0, 0];
         }
     }
-
+ 
     saveData = function() {
-      if (PPVTrackIds.includes(this.currentTrackId)) {
-          this.savePPVData();
-      }
+        if (PPVTrackIds.includes(this.currentTrackId)) {
+            this.savePPVData();
+        }
     }
 };
 
 const statistics = new StatisticsMod();
+migrateLegacyStatsStorage();
 
 const updateServerEntries = function(container) {
   const allowedIds = new Set(["server-countdown", "heading-text"]);
@@ -67357,6 +67435,7 @@ const createClipsMenu = function(exitFunc) {
           (0, C.GG)(this, Gc, [], "f");
           
           //DORA
+
           const clipping_menu = document.createElement("button");
           ((clipping_menu.className = "button button-image"),
             (clipping_menu.innerHTML = '<img src="images/preview.svg">'),
@@ -67541,6 +67620,9 @@ const createClipsMenu = function(exitFunc) {
           ((T.className = "button button-image"),
             (T.innerHTML = '<img src="images/play.svg">'),
             T.addEventListener("click", () => {
+              //DORA            
+              syncStatsWithServer(); 
+              //
               (audio.playUIClick(),
                 (0, C.gn)(this, vc, "m", qc).call(this),
                 (0, C.gn)(this, vc, "m", Xc).call(this),
