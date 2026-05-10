@@ -35,10 +35,10 @@ let alignment;
 let alignmentFetchTime = Date.now();
 let trackOffset = 0;
 
-const numbServers = 5;
+const numbServers = 8;
 const totalTracks = 50;
 const serverSpacing = Math.floor(totalTracks / numbServers);
-const serverInterval = 600;
+const serverInterval = 900;
 
 const rotationEpoch = new Date(Date.UTC(2026, 4, 3, 20, 0, 0, 0));
 
@@ -115,6 +115,9 @@ const HEALTH_TARGETS = [
   { name: "Server 3", type: "game", server: 2 },
   { name: "Server 4", type: "game", server: 3 },
   { name: "Server 5", type: "game", server: 4 },
+  { name: "Server 6", type: "game", server: 5 },
+  { name: "Server 7", type: "game", server: 6 },
+  { name: "Server 8", type: "game", server: 7 },
   { name: "Leaderboards", type: "leaderboard", url: "https://web-production-25c19.up.railway.app/" },
 ];
 const serverHealth = {};
