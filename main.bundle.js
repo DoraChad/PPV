@@ -229,10 +229,8 @@ const CreateHUD = function(ui) {
     return ((num % size) + size) % size;
   }
 
-  // The next track on the user's current server is the one that follows
-  // the currently active track on that server.
-  const currentForUser = getTrackForServer(userServerNumber + 1); // 1-based
-  const nextIndex = mod(currentForUser, totalTracks) + 1; // wraps 50 -> 1
+  const currentForUser = getTrackForServer(userServerNumber + 1);
+  const nextIndex = mod(currentForUser, totalTracks) + 1;
   
   nextTrack = document.createElement("p");
   nextTrack.className = "next-track visible";
@@ -635,6 +633,15 @@ const leaderboardUI = async function() {
   md.style.margin = "0";
   md.style.zIndex = "2";
   md.className = "pp5leaderboard"
+
+  const poplb = document.createElement("button");
+  poplb.textContent = "Full Leaderboard";
+  poplb.className = "pop-lb";
+  poplb.addEventListener("click", () => {
+    window.open("https://missonance.github.io/PPV-leaderboard/");
+  })
+
+  md.appendChild(poplb);
   
   main.appendChild(md);
   
@@ -1134,6 +1141,19 @@ const createBoxDisplay = function(content, importFunc = null) {
 
 const styles = document.createElement("style");
 styles.textContent = `
+.pop-lb {
+  position: absolute;
+  top: 0;
+  left: 0;
+  color: white;
+  margin: 10px;
+  font-size: 25px;
+  text-decoration: underline;
+  cursor: pointer;
+  pointer-events: auto;
+  background: none;
+  border: none;
+}
 .clip-menu-bg {
   background: #28346a;
   width: 70%;
