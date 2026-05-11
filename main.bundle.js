@@ -1074,7 +1074,7 @@ const localAddClip = function(clipData) {
   localStorage.setItem("pp5_clips", JSON.stringify(clips));
 }
 const localDeleteClip = function(id) {
-    const clips = JSON.parse(localStorage.getItem(this.localKey) || "[]");
+    const clips = JSON.parse(localStorage.getItem("pp5_clips") || "[]");
     const updated = clips.filter(c => c.id !== id);
     localStorage.setItem("pp5_clips", JSON.stringify(updated));
 }
