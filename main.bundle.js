@@ -14708,6 +14708,18 @@ const createClipsMenu = function(exitFunc) {
                 : (0, l.gn)(this, ie, "f").controls;
           }
           setNameTag(e, t) {
+            //MISO
+            if (localStorage.getItem("ppv_hideNametags") === "true") {
+              if (null != (0, l.gn)(this, be, "f")) {
+                (0, l.gn)(this, be, "f").geometry.dispose();
+                (0, l.gn)(this, be, "f").material.map?.dispose();
+                (0, l.gn)(this, be, "f").material.dispose();
+                (0, l.gn)(this, Ae, "f").scene.remove((0, l.gn)(this, be, "f"));
+                (0, l.GG)(this, be, null, "f");
+              }
+              (0, l.GG)(this, ye, null, "f");
+              return;
+            }
             (null != (0, l.gn)(this, ye, "f") &&
               (0, l.gn)(this, ye, "f").countryCode == e &&
               (0, l.gn)(this, ye, "f").name == t) ||
@@ -56598,6 +56610,12 @@ const createClipsMenu = function(exitFunc) {
                     e.car.isPaused = !1;
                     e.car.audioVolume = (0, C.gn)(this, Oa, "f");
 
+                    //MISO
+                    if (localStorage.getItem("ppv_hidePlayers") === "true") {
+                        e.car.setVisible(false);
+                        e.car.audioVolume = 0;
+                    } else {
+
                     if (e.bufferedCarStates.length > 0) {
                         const t = e.bufferedCarStates[e.bufferedCarStates.length - 1].frames / 1e3 - e.time;
                         const i = 0.15;
@@ -56639,6 +56657,8 @@ const createClipsMenu = function(exitFunc) {
                     }
 
                     e.car.update(n);
+
+                  } //MISO
                 }
 
                 (0, C.gn)(this, _r, "m", $a).call(this);
@@ -63900,7 +63920,63 @@ const createClipsMenu = function(exitFunc) {
                 "Toggle spectator camera",
               ),
               ge.A.ToggleSpectatorCamera,
-            ));
+            //MISO
+            ),
+            (function() {
+              const container = (0, C.gn)(this, ks, "f");
+              const h2 = document.createElement("h2");
+              h2.textContent = "PPV Mod";
+              container.appendChild(h2);
+              const row = document.createElement("div");
+              row.className = "setting";
+              const label = document.createElement("p");
+              label.textContent = "Nametags";
+              row.appendChild(label);
+              const wrapper = document.createElement("div");
+              wrapper.className = "button-wrapper";
+              row.appendChild(wrapper);
+              const currentVal = localStorage.getItem("ppv_hideNametags") === "true";
+              const btns = [];
+              [{ title: "Shown", value: "false" }, { title: "Hidden", value: "true" }].forEach(({ title, value }) => {
+                const btn = document.createElement("button");
+                btn.className = "button" + ((value === "true") === currentVal ? " selected" : "");
+                btn.textContent = title;
+                btn.addEventListener("click", () => {
+                  localStorage.setItem("ppv_hideNametags", value);
+                  btns.forEach(b => b.className = "button");
+                  btn.className = "button selected";
+                });
+                wrapper.appendChild(btn);
+                btns.push(btn);
+              });
+              container.appendChild(row);
+              // Players toggle
+              const rowP = document.createElement("div");
+              rowP.className = "setting";
+              const labelP = document.createElement("p");
+              labelP.textContent = "Players";
+              rowP.appendChild(labelP);
+              const wrapperP = document.createElement("div");
+              wrapperP.className = "button-wrapper";
+              rowP.appendChild(wrapperP);
+              const currentValP = localStorage.getItem("ppv_hidePlayers") === "true";
+              const btnsP = [];
+              [{ title: "Shown", value: "false" }, { title: "Hidden", value: "true" }].forEach(({ title, value }) => {
+                const btn = document.createElement("button");
+                btn.className = "button" + ((value === "true") === currentValP ? " selected" : "");
+                btn.textContent = title;
+                btn.addEventListener("click", () => {
+                  localStorage.setItem("ppv_hidePlayers", value);
+                  btnsP.forEach(b => b.className = "button");
+                  btn.className = "button selected";
+                });
+                wrapperP.appendChild(btn);
+                btnsP.push(btn);
+              });
+              container.appendChild(rowP);
+            }).call(this)
+            //
+            );
         }),
         (Ds = function (e) {
           const t = document.createElement("h2");
