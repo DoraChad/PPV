@@ -1,6 +1,6 @@
 window.polytrackModConfiguration = {
   modName: "PPV",
-  author: "DoraChad",
+  author: "DoraChad & Miso",
 };
 
 window.onerror = function (msg, url, line, col, error) {
@@ -15929,7 +15929,7 @@ const createClipsMenu = function(exitFunc) {
           ee = 0,
           te = 0,
           ne = 0,
-          //DORACHAD
+          //DORA
           tab_scroll = 0;
         ((y = new WeakMap()),
           (b = new WeakMap()),
@@ -56196,7 +56196,7 @@ const createClipsMenu = function(exitFunc) {
                           e.preventDefault()
                         );
 
-                        //DORACHAD
+                        //DORA
 
                       } else if (d.checkKeyBinding(e, ge.A.RecordClip)) {
                         createClip();
