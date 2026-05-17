@@ -997,11 +997,11 @@ const CreateServerEntry = async function(trackNumber, idx, total, container) {
   img.style.position = "absolute";
   
 
-  entry.addEventListener("click", async () => {
+  /*entry.addEventListener("click", async () => {
     userServerNumber = idx;
     await getInviteCode(idx);
     multInitFunc();
-  });
+  });*/
   
   if (styleType === "top") {
       entry.style.clipPath = "polygon(0px 0%, 100% 0%, 100% 85%, 0px 100%)";
