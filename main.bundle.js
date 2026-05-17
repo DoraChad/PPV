@@ -35,7 +35,7 @@ let alignment;
 let alignmentFetchTime = Date.now();
 let trackOffset = 0;
 
-const numbServers = 8;
+const numbServers = 10;
 const totalTracks = 50;
 const serverSpacing = Math.floor(totalTracks / numbServers);
 const serverInterval = 900;
@@ -118,6 +118,8 @@ const HEALTH_TARGETS = [
   { name: "Server 6", type: "game", server: 5 },
   { name: "Server 7", type: "game", server: 6 },
   { name: "Server 8", type: "game", server: 7 },
+  { name: "Server 9",  type: "game", server: 8 },
+  { name: "Server 10", type: "game", server: 9 },
   { name: "Leaderboards", type: "leaderboard", url: "https://web-production-25c19.up.railway.app/" },
 ];
 const serverHealth = {};
