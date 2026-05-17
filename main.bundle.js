@@ -120,7 +120,7 @@ const HEALTH_TARGETS = [
   { name: "Server 8", type: "game", server: 7 },
   { name: "Server 9",  type: "game", server: 8 },
   { name: "Server 10", type: "game", server: 9 },
-  { name: "Leaderboards", type: "leaderboard", url: "https://web-production-25c19.up.railway.app/" },
+  { name: "Leaderboards", type: "leaderboard", url: "https://raw.githubusercontent.com/DoraChad/PPV/refs/heads/main/data.json" },
 ];
 const serverHealth = {};
 
@@ -444,7 +444,7 @@ const createCountdown = function(parent) {
 
 const fetchFullLeaderboard = async function() {
     try {
-        const response = await fetch(`https://web-production-25c19.up.railway.app/leaderboards`);
+        const response = await fetch(`https://raw.githubusercontent.com/DoraChad/PPV/refs/heads/main/data.json`);
         
         if (!response.ok) {
             throw new Error(`Server error: ${response.status}`);
